@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
 	"os"
 )
@@ -10,14 +11,15 @@ import (
 var INSTRUCTION_SIZE = 8
 var V = make([]byte, 16) //variables
 var (
-	NNN         = 0x000
-	NN          = 0x00
-	N           = 0x0
-	PC          = 0           //program counter
-	I           = byte(0x000) //address
-	ADDRESSES   = make([][3]byte, 4096)
-	DELAY_TIMER = byte(0x0)
-	SOUND_TIMER = byte(0x0)
+	NNN          = 0x000
+	NN           = 0x00
+	N            = 0x0
+	PC           = 0 //program counter
+	IPC          = make([]byte, 4096)
+	I            = byte(0x000) //address
+	INSTRUCTIONS = make([][3]byte, 4096)
+	DELAY_TIMER  = byte(0x0)
+	SOUND_TIMER  = byte(0x0)
 )
 
 func INST_0(instruction string) {
@@ -197,14 +199,16 @@ func INST_F(instruction string) {
 		DELAY_TIMER = V[instruction[1]]
 	} else if instruction[3] == 0x8 && instruction[2] == 0x1 {
 		SOUND_TIMER = V[instruction[1]]
-	} else if instruction[3] == 0x8 && instruction[2] == 0x1 {
-		SOUND_TIMER = V[instruction[1]]
 	} else if instruction[3] == 0xE {
 		I = I + V[instruction[1]]
 	} else if instruction[3] == 0x9 {
 		//I = SPRITE_ADDR[V[instruction[1]]]
 	} else if instruction[3] == 0x3 {
-		SOUND_TIMER = V[instruction[1]]
+		num := int(V[instruction[1]])
+		IPC[I+0] = num - 10*math.Ceil(num/10)
+		IPC[I+1] = math.Ceil((100*math.Ceil(int(num)/100) - num) / 10)
+		IPC[I+2] = math.Ceil(int(num) / 100)
+
 	} else if instruction[3] == 0x8 {
 		SOUND_TIMER = V[instruction[1]]
 	} else if instruction[2] == 0x5 && instruction[3] == 0x5 {
