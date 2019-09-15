@@ -1,4 +1,4 @@
-package main
+package ma22in
 
 import (
 	"fmt"
@@ -225,6 +225,8 @@ func INST_F(instruction string) {
 func main() {
 	f, err := os.Open("GUESS")
 	bytes := make([]byte, 2)
+
+	//fmt.Println(0x0 + 1)
 
 	if err != nil {
 		panic(err)
