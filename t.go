@@ -1,4 +1,4 @@
-package main
+package main1
 
 import (
 	"fmt"
@@ -34,6 +34,7 @@ func main() {
 			break
 		}
 	} */
+	fmt.Println(">>>" + "<<<<")
 	n, _ := strconv.ParseInt("FF", 16, 8)
 	fmt.Println(n + 1)
 }
