@@ -163,9 +163,9 @@ func INST_8_4(instruction string) {
 	intsum := (V[OnByte(instruction[1])] + V[OnByte(instruction[2])])
 	boo := (intsum & 0xFFFFFF00)
 	if boo != 0 {
-		V[0xF] = 1
+		V[0xF] = 0x1
 	} else {
-		V[0xF] = 0
+		V[0xF] = 0x0
 	}
 	V[OnByte(instruction[1])] = (V[OnByte(instruction[1])] + V[OnByte(instruction[2])]) & 0xFF
 
@@ -173,15 +173,12 @@ func INST_8_4(instruction string) {
 
 func INST_8_5(instruction string) {
 	fmt.Println("0x8855 ", instruction[1:])
-	//VF
-	// V[OnByte(instruction[1])] = (V[OnByte(instruction[1])] - V[OnByte(instruction[2])]) & 0xFF
-	// V[0xF] = ((V[OnByte(instruction[1])] + V[OnByte(instruction[2])]) >> 8) ^ 0x1
 	intsum := (V[OnByte(instruction[1])] - V[OnByte(instruction[2])])
 
 	if intsum < 0 {
-		V[0xF] = 1
+		V[0xF] = 0x1
 	} else {
-		V[0xF] = 0
+		V[0xF] = 0x0
 	}
 	V[OnByte(instruction[1])] = (V[OnByte(instruction[1])] - V[OnByte(instruction[2])]) & 0xFF
 
@@ -189,7 +186,7 @@ func INST_8_5(instruction string) {
 
 func INST_8_6(instruction string) {
 	fmt.Println("0x8866 ", instruction[1:])
-	V[0xF] = V[OnByte(instruction[1])] & 0x01
+	V[0xF] = V[OnByte(instruction[1])] & 0x1
 	V[OnByte(instruction[1])] = (V[OnByte(instruction[1])] >> 1) & 0xFF
 }
 
@@ -264,20 +261,23 @@ func Draw(x, y, z int) {
 
 	_height := z
 
-	V[0xF] = 0
+	V[0xF] = 0x0
 	for yline := _y; yline < _y+_height; yline++ {
-		n, _ := strconv.ParseInt(MEMORY[I+yline-_y], 16, 8)
-		pixel := int(n)
+		n, _ := strconv.ParseInt(MEMORY[I+yline-_y], 16, 16)
+		pixel := int(n) //& 0x0000FFFF
 		for xline := _x; xline < _x+8; xline++ {
-			if (pixel & (0x80 >> uint(xline-_x))) != 0x00 {
-				//fmt.Println("....", xline, "...", yline)
+
+			fmt.Println("-------", pixel, (0x80 >> uint(xline-_x)))
+
+			if (pixel & (0x80 >> uint(xline-_x))) != 0 {
 				if xline > 63 || yline > 31 {
-					//fmt.Println("XXX ", " YYY ", yline)
+					fmt.Println("XXX ", " YYY ", yline)
+					os.Exit(2)
 					continue
 				}
 				if GFX[xline][yline] == 1 {
 					GFX[xline][yline] = 0
-					V[0xF] = 1
+					V[0xF] = 0x1
 				} else {
 					GFX[xline][yline] = 1
 				}
@@ -286,6 +286,25 @@ func Draw(x, y, z int) {
 	}
 
 	//os.Exit(2)
+}
+func INST_DRAW(pc int) {
+
+	fmt.Print("\033[0m\033[1J \033[0;0H \033[J \033[0m\033[1J\n")
+	for j := 0; j < 32; j++ {
+		for i := 0; i < 64; i++ {
+			if GFX[i][j] == 1 {
+				fmt.Print(" ⬜️")
+			} else {
+				//fmt.Print("0")
+				fmt.Print("  ")
+
+			}
+			//			fmt.Print(GFX[i][j])
+		}
+		fmt.Println()
+	}
+	fmt.Println("----", _ii, "----", pc, " ", MEMORY[pc], MEMORY[pc+1], " V ", V, "------")
+
 }
 
 func INST_D(instruction string) {
@@ -306,23 +325,6 @@ func INST_E(instruction string) {
 
 		}
 	}
-}
-func INST_DRAW(pc int) {
-
-	fmt.Print("\033[0m\033[1J \033[0;0H \033[J \033[0m\033[1J\n")
-	for j := 0; j < 32; j++ {
-		for i := 0; i < 64; i++ {
-			if GFX[i][j] == 1 {
-				fmt.Print(" ⬛️")
-			} else {
-				fmt.Print(" ⬜️")
-			}
-			//			fmt.Print(GFX[i][j])
-		}
-		fmt.Println()
-	}
-	//fmt.Println("--------", pc, " ", MEMORY[pc], MEMORY[pc+1], " V ", V, "------")
-
 }
 
 func getKey() {
@@ -392,7 +394,7 @@ func INST_F(instruction string) {
 }
 
 func main() {
-	f, err := os.Open("GUESS")
+	f, err := os.Open("ROMS/BRIX")
 
 	if err != nil {
 		panic(err)
@@ -411,11 +413,11 @@ func main() {
 	for i := 0; i < 64; i++ {
 		GFX[i] = make([]int, 32)
 	}
-	/* for i := 0; i < 64; i++ {
+	for i := 0; i < 64; i++ {
 		for j := 0; j < 32; j++ {
-			GFX[i][j] = 1
+			GFX[i][j] = 0
 		}
-	} */
+	}
 
 	for i := 0; i < len(FONT); i++ {
 		MEMORY[i] = fmt.Sprintf("%02X", FONT[i])
@@ -423,10 +425,7 @@ func main() {
 
 	PC = 0x200
 	bufr := bufio.NewReader(f)
-	//stats, _ := f.Stat()
-	//var size int64 = stats.Size()
 	bytes := make([]byte, 1)
-	//_,err = bufr.Read(bytes)
 
 	for {
 
@@ -444,12 +443,6 @@ func main() {
 
 	PC = 0x200
 
-	/* go func() {
-		for {
-			V[rand.Intn(16)] = rand.Intn(16)
-			time.Sleep(time.Second * 1)
-		}
-	}() */
 	for {
 
 		ins := MEMORY[PC] + MEMORY[PC+1]
@@ -511,10 +504,10 @@ func main() {
 		default:
 			fmt.Println("NOT DEFINED")
 		}
-		if false {
+		if true {
 			INST_DRAW(PC)
 		}
-		time.Sleep(time.Millisecond * 40)
+		time.Sleep(time.Millisecond * 60)
 
 		PC += 2
 	}
