@@ -41,7 +41,7 @@ var (
 		0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
 		0xF0, 0x80, 0xF0, 0x80, 0x80, // F
 	}
-	MEMORY      = make([]string, 4096)
+	MEMORY      = make([]string, 1024)
 	DELAY_TIMER = 0x0
 	SOUND_TIMER = 0x0
 )
@@ -357,15 +357,11 @@ func INST_F(instruction string) {
 		fmt.Println("0xFX33 ", instruction[1:])
 
 		num := float64(V[OnByte(instruction[1])])
-		/*
-			MEMORY[I+2] = fmt.Sprintf("%02X", int(num-10.0*math.Ceil(num/10.0)))
-			MEMORY[I+1] = fmt.Sprintf("%02X", int(math.Ceil((100*math.Ceil(num/100.0)-num)/10.0)))
-			MEMORY[I+0] = fmt.Sprintf("%02X", int(math.Ceil(num/100.0)))
-		*/
+
 		MEMORY[I+0] = fmt.Sprintf("%02X", int(num/100)%10)
 		MEMORY[I+1] = fmt.Sprintf("%02X", int(num/10)%10)
 		MEMORY[I+2] = fmt.Sprintf("%02X", int(num)%10)
-		fmt.Println("BCD ::::::::> ", MEMORY[I]+MEMORY[I+1]+MEMORY[I+2])
+		fmt.Println("BCD ::::::::> ", float64(V[OnByte(instruction[1])]), " -- ", MEMORY[I]+MEMORY[I+1]+MEMORY[I+2])
 	} else if instruction[3] == '8' {
 		fmt.Println("0xFX18 ", instruction[1:])
 
@@ -391,14 +387,14 @@ func INST_F(instruction string) {
 }
 
 func main() {
-	f, err := os.Open("ROMS/GUESS")
+	f, err := os.Open("ROMS/TICTAC")
 
 	if err != nil {
 		panic(err)
 	}
 	defer f.Close()
 
-	for i := 0; i < 4096; i++ {
+	for i := 0; i < 1024; i++ {
 		MEMORY[i] = "00"
 	}
 
@@ -498,7 +494,7 @@ func main() {
 		default:
 			fmt.Println("NOT DEFINED")
 		}
-		if false {
+		if true {
 			INST_DRAW(PC)
 		}
 		time.Sleep(time.Millisecond * 60)
