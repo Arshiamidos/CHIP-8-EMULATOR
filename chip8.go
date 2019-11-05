@@ -112,7 +112,6 @@ func INST_3(instruction string) {
 
 func INST_4(instruction string) {
 	fmt.Println("0x4444 ", instruction[1:])
-	fmt.Println("0x4444 ", V[OnByte(instruction[1])], ToByte(instruction[2], instruction[3]))
 	if V[OnByte(instruction[1])] != ToByte(instruction[2], instruction[3]) {
 		PC += 2
 	}
@@ -267,8 +266,6 @@ func Draw(x, y, z int) {
 		pixel := int(n) //& 0x0000FFFF
 		for xline := _x; xline < _x+8; xline++ {
 
-			fmt.Println("-------", pixel, (0x80 >> uint(xline-_x)))
-
 			if (pixel & (0x80 >> uint(xline-_x))) != 0 {
 				if xline > 63 || yline > 31 {
 					fmt.Println("XXX ", " YYY ", yline)
@@ -394,7 +391,7 @@ func INST_F(instruction string) {
 }
 
 func main() {
-	f, err := os.Open("ROMS/BRIX")
+	f, err := os.Open("ROMS/GUESS")
 
 	if err != nil {
 		panic(err)
@@ -434,9 +431,6 @@ func main() {
 			break
 		}
 		MEMORY[PC] = fmt.Sprintf("%02X", bytes[0])
-		//if PC > 650 {
-		fmt.Println(PC, " ))) ", bytes, "(((", fmt.Sprintf("%02X", bytes[0]))
-		//}
 		PC = PC + 1
 
 	}
@@ -504,7 +498,7 @@ func main() {
 		default:
 			fmt.Println("NOT DEFINED")
 		}
-		if true {
+		if false {
 			INST_DRAW(PC)
 		}
 		time.Sleep(time.Millisecond * 60)
